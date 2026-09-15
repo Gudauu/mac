@@ -1,0 +1,3 @@
+# Repository documentation belongs in the source tree, not in $HOME.
+AGENTS.md
+RESTORE.md

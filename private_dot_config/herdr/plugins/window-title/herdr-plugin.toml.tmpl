@@ -12,4 +12,4 @@ platforms = ["macos"]
 # follow the active Xcode (3.9.6 at the time) and break if Xcode moved or was
 # removed. Homebrew's symlink tracks the current default Python and does not
 # depend on the developer toolchain. The script is pure stdlib, so any 3.x works.
-command = ["/opt/homebrew/bin/python3", "window_title.py"]
+command = ["{{ if eq .chezmoi.arch "arm64" }}/opt/homebrew{{ else }}/usr/local{{ end }}/bin/python3", "window_title.py"]
