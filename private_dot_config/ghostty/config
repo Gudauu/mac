@@ -1,0 +1,17 @@
+# Ghostty configuration.
+#
+# Terminal layering on this machine:
+#   Ghostty (emulator)  ->  herdr (tabs, panes, sessions)  ->  zsh (shell)
+# Tab and pane keybindings live in herdr, not here. See ~/.config/herdr/config.toml.
+
+# Rose Pine Moon. Ships with Ghostty; see `ghostty +list-themes`.
+theme = Rose Pine Moon
+
+# Subtle translucency. background-opacity-cells stays at its default of false,
+# so this applies only to the default background: herdr's tab bar and sidebar
+# paint explicit background colors and stay fully opaque.
+background-opacity = 0.92
+
+# Blur what shows through, so desktop detail behind the window cannot compete
+# with terminal text.
+background-blur = 20

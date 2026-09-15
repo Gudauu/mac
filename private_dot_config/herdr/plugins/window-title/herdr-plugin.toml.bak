@@ -1,0 +1,9 @@
+id = "window-title"
+name = "window-title"
+version = "0.1.0"
+min_herdr_version = "0.8.0"
+description = "Keep the outer terminal title in sync with the focused space and path"
+platforms = ["macos"]
+
+[[startup]]
+command = ["python3", "window_title.py"]

@@ -1,0 +1,14 @@
+. "$HOME/.cargo/env"
+export PATH=$HOME/Documents/dependencies/flutter/bin:$PATH
+export ANDROID_HOME=/Users/$USER/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+export NO_MISTAKES_TELEMETRY=0
+
+# Here rather than .zshrc so non-interactive zsh gets them too. Note this does
+# NOT reach herdr's edit_scrollback: that runs under /bin/sh, which reads no zsh
+# rc files at all. Its copy of these lives in the launchd plist, see
+# ~/Library/LaunchAgents/homebrew.mxcl.herdr.plist.
+#
+# EDITOR is absolute because launchd's PATH is only /usr/bin:/bin:/usr/sbin:/sbin.
+export EDITOR=/opt/homebrew/bin/nvim
+export LANG=en_US.UTF-8

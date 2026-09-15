@@ -1,0 +1,15 @@
+id = "window-title"
+name = "window-title"
+version = "0.1.0"
+min_herdr_version = "0.8.0"
+description = "Keep the outer terminal title in sync with the focused space and path"
+platforms = ["macos"]
+
+[[startup]]
+# Pin the interpreter to an absolute path. A bare "python3" resolves through
+# launchd's PATH to /usr/bin/python3, which is only an Apple stub that dispatches
+# to whatever `xcode-select -p` currently points at. That made the interpreter
+# follow the active Xcode (3.9.6 at the time) and break if Xcode moved or was
+# removed. Homebrew's symlink tracks the current default Python and does not
+# depend on the developer toolchain. The script is pure stdlib, so any 3.x works.
+command = ["/opt/homebrew/bin/python3", "window_title.py"]
