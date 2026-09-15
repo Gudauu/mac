@@ -1,7 +1,7 @@
 # Restore the macOS development configuration
 
-This repository restores the shared configuration for Ghostty, Herdr, Neovim,
-the shell environment, and personal aliases with chezmoi.
+This repository restores the shared configuration for AeroSpace, Ghostty,
+Herdr, Neovim, the shell environment, and personal aliases with chezmoi.
 It also records the Homebrew packages and macOS menu shortcuts needed to make
 the configuration behave the same on another Mac.
 
@@ -13,6 +13,7 @@ window positions, credentials, or other machine-specific state.
 | Target | Purpose |
 |---|---|
 | `~/Brewfile` | Homebrew formulae, casks, and the Nerd Font |
+| `~/.aerospace.toml` | AeroSpace layouts, workspaces, monitor rules, and bindings |
 | `~/.zshenv` | Environment variables, including `EDITOR` and `VISUAL` |
 | `~/.zshrc` | Shared Oh My Zsh bootstrap and plugin list |
 | `~/.oh-my-zsh/custom/aliases.zsh` | Personal aliases shared by interactive shells |
@@ -41,6 +42,7 @@ backup="$HOME/config-backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$backup"
 
 for path in \
+  "$HOME/.aerospace.toml" \
   "$HOME/.zshenv" \
   "$HOME/.zshrc" \
   "$HOME/.zshrc.local" \
@@ -144,13 +146,18 @@ It also downloads the pinned Oh My Zsh plugins declared in
 
 ## 5. Install the applications and command-line dependencies
 
+AeroSpace comes from its official third-party Homebrew tap.
+Trust that tap explicitly before Brew Bundle installs it:
+
 ```sh
+brew trust nikitabobko/tap
 brew bundle --file="$HOME/Brewfile"
 ```
 
 Confirm the core programs:
 
 ```sh
+aerospace --version
 herdr --version
 nvim --version
 "/Applications/Ghostty.app/Contents/MacOS/ghostty" +version
@@ -302,7 +309,21 @@ managed.
 It contains window position and updater state rather than the shared terminal
 configuration.
 
-## 10. Restore the macOS menu shortcuts
+## 10. Validate AeroSpace
+
+```sh
+open -a AeroSpace
+aerospace reload-config
+aerospace config --config-path
+```
+
+The config path should be `~/.aerospace.toml`.
+It starts AeroSpace at login and restores the shared layouts, workspace
+bindings, and zero-width window gaps.
+Workspaces prefer the `G272QPF E2` external monitor and fall back to the
+built-in display when that monitor is absent.
+
+## 11. Restore the macOS menu shortcuts
 
 The source Mac has these global custom menu shortcuts:
 
@@ -333,7 +354,7 @@ If "shortcuts" means workflows in Apple's Shortcuts app, enable Shortcuts in
 iCloud settings on both Macs.
 Those workflows sync through iCloud and do not belong in this repository.
 
-## 11. Final checks
+## 12. Final checks
 
 ```sh
 chezmoi doctor
@@ -344,6 +365,7 @@ zsh -i -c '
   [[ -n ${ZSH_HIGHLIGHT_VERSION-}${ZSH_HIGHLIGHT_REVISION-} ]]
 '
 brew services list
+aerospace reload-config
 herdr config check
 herdr plugin list
 "/Applications/Ghostty.app/Contents/MacOS/ghostty" +validate-config
@@ -374,6 +396,10 @@ chezmoi diff
 
 Add only paths that actually changed.
 Keep `.zshrc.local` untracked.
+The AeroSpace config is a template because its executable path depends on the
+Homebrew architecture.
+Edit `dot_aerospace.toml.tmpl` from the source directory instead of importing
+its rendered target with `chezmoi add`.
 Update plugin revisions in `.chezmoiexternal.toml`, then apply with
 `chezmoi apply --refresh-externals=always` to test them.
 
@@ -411,6 +437,7 @@ chezmoi apply
 Then reload the affected program:
 
 ```sh
+aerospace reload-config
 herdr config check && herdr server reload-config
 ```
 
@@ -426,6 +453,8 @@ Never add these paths to the repository:
 
 ```text
 ~/.zshrc.local
+~/Library/LaunchAgents/bobko.aerospace.plist
+~/Library/Preferences/bobko.aerospace.plist
 ~/.config/herdr/*.log
 ~/.config/herdr/*.sock
 ~/.config/herdr/plugins.json

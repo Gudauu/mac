@@ -21,10 +21,12 @@ Keep device-specific paths, runtimes, and key bindings in the unmanaged
 Before replacing an existing zshrc on another Mac, preserve its device-specific
 statements in `.zshrc.local`; do not copy a second Oh My Zsh bootstrap there.
 
-The Herdr plugin manifest is a chezmoi template.
-Edit `private_dot_config/herdr/plugins/window-title/herdr-plugin.toml.tmpl`
-in the source directory rather than importing the rendered target with
+The AeroSpace config and Herdr plugin manifest are chezmoi templates.
+Edit `dot_aerospace.toml.tmpl` and
+`private_dot_config/herdr/plugins/window-title/herdr-plugin.toml.tmpl` in the
+source directory rather than importing their rendered targets with
 `chezmoi add`.
+Both templates select Homebrew paths for the current Mac architecture.
 
 Never add Herdr logs, sockets, session state, release notes, or `plugins.json`.
 The plugin registry contains machine-specific absolute paths.
