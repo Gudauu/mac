@@ -1,7 +1,7 @@
 # Restore the macOS development configuration
 
 This repository restores the shared configuration for Ghostty, Herdr, Neovim,
-and the shell environment with chezmoi.
+the shell environment, and personal aliases with chezmoi.
 It also records the Homebrew packages and macOS menu shortcuts needed to make
 the configuration behave the same on another Mac.
 
@@ -14,6 +14,7 @@ window positions, credentials, or other machine-specific state.
 |---|---|
 | `~/Brewfile` | Homebrew formulae, casks, and the Nerd Font |
 | `~/.zshenv` | Environment variables, including `EDITOR` and `VISUAL` |
+| `~/.oh-my-zsh/custom/aliases.zsh` | Personal aliases shared by interactive shells |
 | `~/.config/ghostty/config` | Ghostty theme and background settings |
 | `~/.config/herdr/config.toml` | Herdr theme, behavior, and keybindings |
 | `~/.config/herdr/plugins/window-title/` | Source for the local Herdr window-title plugin |
@@ -38,6 +39,7 @@ mkdir -p "$backup"
 
 for path in \
   "$HOME/.zshenv" \
+  "$HOME/.oh-my-zsh/custom/aliases.zsh" \
   "$HOME/.config/ghostty" \
   "$HOME/.config/herdr" \
   "$HOME/.config/nvim"
@@ -79,11 +81,37 @@ brew --prefix
 brew doctor
 ```
 
-## 3. Install chezmoi and fetch this repository
+## 3. Install chezmoi and Oh My Zsh
 
 ```sh
 brew install chezmoi
 ```
+
+The shared aliases use Oh My Zsh's custom configuration loader.
+Install Oh My Zsh before applying chezmoi so the managed custom directory does
+not interfere with the installer:
+
+```sh
+if [[ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]]; then
+  if [[ -e "$HOME/.zshrc" ]]; then
+    KEEP_ZSHRC=yes RUNZSH=no CHSH=no sh -c \
+      "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  else
+    RUNZSH=no CHSH=no sh -c \
+      "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
+fi
+```
+
+When preserving an existing `.zshrc`, confirm that it loads Oh My Zsh:
+
+```sh
+grep -F 'oh-my-zsh.sh' "$HOME/.zshrc"
+```
+
+The alias file will not load unless `.zshrc` sources `oh-my-zsh.sh`.
+
+## 4. Fetch and apply this repository
 
 For a new Mac with no configuration to preserve, fetch and apply in one step:
 
@@ -108,7 +136,7 @@ chezmoi apply
 The repository maps `Brewfile` to `~/Brewfile`.
 Applying chezmoi writes the file but does not install its packages.
 
-## 4. Install the applications and command-line dependencies
+## 5. Install the applications and command-line dependencies
 
 ```sh
 brew bundle --file="$HOME/Brewfile"
@@ -140,14 +168,15 @@ Load the restored environment in the current terminal:
 exec zsh
 ```
 
-Verify it:
+Verify it and the shared aliases:
 
 ```sh
 printf 'EDITOR=%s\nVISUAL=%s\n' "$EDITOR" "$VISUAL"
 command -v "$EDITOR"
+alias cbp gm gmd gb gs
 ```
 
-## 5. Register the Herdr plugin
+## 6. Register the Herdr plugin
 
 Do not restore `~/.config/herdr/plugins.json` from another Mac.
 It contains absolute paths from the machine where Herdr registered each plugin.
@@ -175,7 +204,7 @@ Validate the Herdr configuration:
 herdr config check
 ```
 
-## 6. Start the persistent Herdr service
+## 7. Start the persistent Herdr service
 
 Herdr's scrollback editor runs under the background service and does not source
 zsh startup files.
@@ -207,7 +236,7 @@ herdr status server
 herdr plugin list
 ```
 
-## 7. Bootstrap Neovim
+## 8. Bootstrap Neovim
 
 The first launch clones `lazy.nvim` and installs the plugins pinned in
 `~/.config/nvim/lazy-lock.json`:
@@ -242,7 +271,7 @@ Follow the caveats printed by those formulae so `/usr/libexec/java_home` can
 find both installations.
 The Java-specific setup is optional if this Mac will not edit Java projects.
 
-## 8. Validate Ghostty
+## 9. Validate Ghostty
 
 ```sh
 "/Applications/Ghostty.app/Contents/MacOS/ghostty" +validate-config
@@ -254,7 +283,7 @@ managed.
 It contains window position and updater state rather than the shared terminal
 configuration.
 
-## 9. Restore the macOS menu shortcuts
+## 10. Restore the macOS menu shortcuts
 
 The source Mac has these global custom menu shortcuts:
 
@@ -285,11 +314,12 @@ If "shortcuts" means workflows in Apple's Shortcuts app, enable Shortcuts in
 iCloud settings on both Macs.
 Those workflows sync through iCloud and do not belong in this repository.
 
-## 10. Final checks
+## 11. Final checks
 
 ```sh
 chezmoi doctor
 chezmoi diff
+zsh -i -c 'alias cbp gm gmd gb gs'
 brew services list
 herdr config check
 herdr plugin list
@@ -309,6 +339,7 @@ it in chezmoi:
 
 ```sh
 chezmoi add "$HOME/.zshenv"
+chezmoi add "$HOME/.oh-my-zsh/custom/aliases.zsh"
 chezmoi add "$HOME/.config/ghostty/config"
 chezmoi add "$HOME/.config/herdr/config.toml"
 chezmoi add "$HOME/.config/herdr/plugins/window-title/window_title.py"
@@ -354,6 +385,8 @@ Then reload the affected program:
 herdr config check && herdr server reload-config
 ```
 
+Start a new shell with `exec zsh` after changing the shared aliases or
+`.zshenv`.
 Restart Ghostty after its configuration changes.
 Restart Neovim after its configuration changes and run `:Lazy sync` if the
 plugin specification or lock file changed.

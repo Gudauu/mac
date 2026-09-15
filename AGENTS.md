@@ -12,6 +12,11 @@ When changing a managed file, edit the file under `$HOME`, test it, and run
 `chezmoi add <path>` to update the source state.
 Review `chezmoi diff` before committing.
 
+Shared aliases live in `~/.oh-my-zsh/custom/aliases.zsh`.
+Oh My Zsh loads that file after its plugins, so these definitions can override
+plugin aliases without replacing either Mac's complete `~/.zshrc`.
+Do not create or manage another zshrc solely to share aliases.
+
 The Herdr plugin manifest is a chezmoi template.
 Edit `private_dot_config/herdr/plugins/window-title/herdr-plugin.toml.tmpl`
 in the source directory rather than importing the rendered target with
