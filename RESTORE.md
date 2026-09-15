@@ -14,8 +14,11 @@ window positions, credentials, or other machine-specific state.
 |---|---|
 | `~/Brewfile` | Homebrew formulae, casks, and the Nerd Font |
 | `~/.zshenv` | Environment variables, including `EDITOR` and `VISUAL` |
+| `~/.zshrc` | Shared Oh My Zsh bootstrap and plugin list |
 | `~/.oh-my-zsh/custom/aliases.zsh` | Personal aliases shared by interactive shells |
-| `~/.config/ghostty/config` | Ghostty theme and background settings |
+| `~/.oh-my-zsh/custom/prompt.zsh` | Compact colored prompt and directory banner |
+| `~/.oh-my-zsh/custom/plugins/` | Third-party plugins pinned by `.chezmoiexternal.toml` |
+| `~/.config/ghostty/config` | Rose Pine Moon palette, translucency, and blur |
 | `~/.config/herdr/config.toml` | Herdr theme, behavior, and keybindings |
 | `~/.config/herdr/plugins/window-title/` | Source for the local Herdr window-title plugin |
 | `~/.config/nvim/` | Neovim settings, mappings, plugins, and plugin lock file |
@@ -39,7 +42,10 @@ mkdir -p "$backup"
 
 for path in \
   "$HOME/.zshenv" \
+  "$HOME/.zshrc" \
+  "$HOME/.zshrc.local" \
   "$HOME/.oh-my-zsh/custom/aliases.zsh" \
+  "$HOME/.oh-my-zsh/custom/prompt.zsh" \
   "$HOME/.config/ghostty" \
   "$HOME/.config/herdr" \
   "$HOME/.config/nvim"
@@ -103,13 +109,11 @@ if [[ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]]; then
 fi
 ```
 
-When preserving an existing `.zshrc`, confirm that it loads Oh My Zsh:
-
-```sh
-grep -F 'oh-my-zsh.sh' "$HOME/.zshrc"
-```
-
-The alias file will not load unless `.zshrc` sources `oh-my-zsh.sh`.
+Chezmoi replaces `.zshrc` with the shared Oh My Zsh bootstrap.
+Before applying on an existing Mac, move device-specific paths, runtime setup,
+and key bindings from its old zshrc into `~/.zshrc.local`.
+Do not copy the old Oh My Zsh bootstrap or plugin list into that local file.
+The managed zshrc loads `.zshrc.local` after the shared configuration.
 
 ## 4. Fetch and apply this repository
 
@@ -134,7 +138,9 @@ chezmoi apply
 ```
 
 The repository maps `Brewfile` to `~/Brewfile`.
-Applying chezmoi writes the file but does not install its packages.
+Applying chezmoi writes the file but does not install its Homebrew packages.
+It also downloads the pinned Oh My Zsh plugins declared in
+`.chezmoiexternal.toml`.
 
 ## 5. Install the applications and command-line dependencies
 
@@ -168,12 +174,16 @@ Load the restored environment in the current terminal:
 exec zsh
 ```
 
-Verify it and the shared aliases:
+Verify the environment, aliases, prompt hook, and syntax highlighting:
 
 ```sh
 printf 'EDITOR=%s\nVISUAL=%s\n' "$EDITOR" "$VISUAL"
 command -v "$EDITOR"
 alias cbp gm gmd gb gs
+zsh -i -c '
+  (( ${precmd_functions[(Ie)shared_prompt_precmd]} ))
+  [[ -n ${ZSH_HIGHLIGHT_VERSION-}${ZSH_HIGHLIGHT_REVISION-} ]]
+'
 ```
 
 ## 6. Register the Herdr plugin
@@ -275,8 +285,17 @@ The Java-specific setup is optional if this Mac will not edit Java projects.
 
 ```sh
 "/Applications/Ghostty.app/Contents/MacOS/ghostty" +validate-config
+"/Applications/Ghostty.app/Contents/MacOS/ghostty" +show-config | \
+  grep -E '^(theme|background-opacity|background-blur)'
 open -a Ghostty
 ```
+
+The effective values should include `Rose Pine Moon`, opacity `0.92`, and blur
+`20`.
+The terminal pane is translucent, while Herdr's tab bar and sidebar remain
+opaque because they paint their own backgrounds.
+If the pane is still opaque, turn off System Settings > Accessibility > Display
+> Reduce transparency, fully quit Ghostty, and reopen it.
 
 The Ghostty preference file under `~/Library/Preferences` is intentionally not
 managed.
@@ -319,7 +338,11 @@ Those workflows sync through iCloud and do not belong in this repository.
 ```sh
 chezmoi doctor
 chezmoi diff
-zsh -i -c 'alias cbp gm gmd gb gs'
+zsh -i -c '
+  alias cbp gm gmd gb gs >/dev/null
+  (( ${precmd_functions[(Ie)shared_prompt_precmd]} ))
+  [[ -n ${ZSH_HIGHLIGHT_VERSION-}${ZSH_HIGHLIGHT_REVISION-} ]]
+'
 brew services list
 herdr config check
 herdr plugin list
@@ -339,7 +362,9 @@ it in chezmoi:
 
 ```sh
 chezmoi add "$HOME/.zshenv"
+chezmoi add "$HOME/.zshrc"
 chezmoi add "$HOME/.oh-my-zsh/custom/aliases.zsh"
+chezmoi add "$HOME/.oh-my-zsh/custom/prompt.zsh"
 chezmoi add "$HOME/.config/ghostty/config"
 chezmoi add "$HOME/.config/herdr/config.toml"
 chezmoi add "$HOME/.config/herdr/plugins/window-title/window_title.py"
@@ -348,6 +373,10 @@ chezmoi diff
 ```
 
 Add only paths that actually changed.
+Keep `.zshrc.local` untracked.
+Update plugin revisions in `.chezmoiexternal.toml`, then apply with
+`chezmoi apply --refresh-externals=always` to test them.
+
 The Herdr plugin manifest is a template because its Python path depends on the
 Homebrew architecture.
 Edit that file from the source directory instead of importing its rendered
@@ -385,8 +414,8 @@ Then reload the affected program:
 herdr config check && herdr server reload-config
 ```
 
-Start a new shell with `exec zsh` after changing the shared aliases or
-`.zshenv`.
+Start a new shell with `exec zsh` after changing `.zshenv`, `.zshrc`, the
+shared aliases, the prompt, or the plugins.
 Restart Ghostty after its configuration changes.
 Restart Neovim after its configuration changes and run `:Lazy sync` if the
 plugin specification or lock file changed.
@@ -396,6 +425,7 @@ plugin specification or lock file changed.
 Never add these paths to the repository:
 
 ```text
+~/.zshrc.local
 ~/.config/herdr/*.log
 ~/.config/herdr/*.sock
 ~/.config/herdr/plugins.json
