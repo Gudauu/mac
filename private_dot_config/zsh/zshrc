@@ -1,0 +1,22 @@
+plugins=(
+    git
+    docker
+    zsh-autosuggestions
+    zsh-completions
+    zsh-syntax-highlighting
+    zsh-history-substring-search
+)
+
+
+
+
+# Prompt: yellow time, cyan dir, magenta git branch
+PROMPT='%F{yellow}%D{%H:%M:%S}%f %F{cyan}%B%1~%b%f %F{magenta}${vcs_info_msg_0_}%f '
+
+
+
+alias cbp='claude --permission-mode bypassPermissions'
+alias gm='git commit'
+alias gmd='git commit --amend'
+alias gb='git branch'
+alias gs='git status -s'
