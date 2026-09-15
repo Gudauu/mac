@@ -9,6 +9,15 @@ export NO_MISTAKES_TELEMETRY=0
 # rc files at all. Its copy of these lives in the launchd plist, see
 # ~/Library/LaunchAgents/homebrew.mxcl.herdr.plist.
 #
-# EDITOR is absolute because launchd's PATH is only /usr/bin:/bin:/usr/sbin:/sbin.
-export EDITOR=/opt/homebrew/bin/nvim
+# Use an absolute editor path on both Apple Silicon and Intel Homebrew installs.
+# Herdr's background service records this value when `brew services start herdr`
+# creates its launchd plist.
+if [[ -x /opt/homebrew/bin/nvim ]]; then
+  export EDITOR=/opt/homebrew/bin/nvim
+elif [[ -x /usr/local/bin/nvim ]]; then
+  export EDITOR=/usr/local/bin/nvim
+else
+  export EDITOR=nvim
+fi
+export VISUAL="$EDITOR"
 export LANG=en_US.UTF-8
