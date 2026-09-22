@@ -36,6 +36,17 @@ Do not add Neovim data from `~/.local/share/nvim`, `~/.local/state/nvim`, or
 `~/.cache/nvim`.
 Keep `~/.config/nvim/lazy-lock.json` tracked because it pins plugin revisions.
 
+Only track `~/.config/copyq/copyq-commands.ini` from CopyQ's config directory.
+It declares the automatic "Move Images to Other Tab" command and the manual
+"Move to PIN tab" command; CopyQ creates the `Images` and `PIN` tabs itself the
+first time each command's condition fires, so no tab-layout file needs to be
+tracked. Do not add `copyq_tabs.ini` (a serialized item-count and
+collapsed-tab UI cache), the per-tab `copyq_tab_*.dat` files (cached clipboard
+contents), `copyq_geometry.ini` (window positions), `copyq-filter.ini`,
+`copyq-monitor.ini`, `copyq.lock`, or the `.copyq_s` socket.
+The CopyQ Homebrew cask is disabled for failing Gatekeeper, so it is installed
+manually and does not belong in the Brewfile.
+
 Do not commit credentials, SSH keys, tokens, shell history, or machine-specific
 application state.
 Do not push changes unless the user explicitly asks.

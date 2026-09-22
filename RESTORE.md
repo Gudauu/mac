@@ -23,6 +23,7 @@ window positions, credentials, or other machine-specific state.
 | `~/.config/herdr/config.toml` | Herdr theme, behavior, and keybindings |
 | `~/.config/herdr/plugins/window-title/` | Source for the local Herdr window-title plugin |
 | `~/.config/nvim/` | Neovim settings, mappings, plugins, and plugin lock file |
+| `~/.config/copyq/copyq-commands.ini` | CopyQ automatic and manual commands, including the Images and PIN tab routing |
 
 Herdr owns terminal tab and pane shortcuts.
 They live in the `[keys]` section of `~/.config/herdr/config.toml`.
@@ -309,7 +310,38 @@ managed.
 It contains window position and updater state rather than the shared terminal
 configuration.
 
-## 10. Validate AeroSpace
+## 10. Install and restore CopyQ
+
+The CopyQ Homebrew cask is disabled because it fails Apple's Gatekeeper check,
+so it does not belong in the Brewfile and `brew bundle` cannot install it.
+Download and install it manually from
+[hluk.github.io/CopyQ](https://hluk.github.io/CopyQ/), then quit it.
+
+Applying this repository already wrote the managed
+`~/.config/copyq/copyq-commands.ini`.
+Launch CopyQ so it creates its own runtime files alongside it:
+
+```sh
+open -a CopyQ
+```
+
+Confirm the automatic and manual commands loaded:
+
+```sh
+grep -E '^[0-9]+\\Name=' "$HOME/.config/copyq/copyq-commands.ini"
+```
+
+CopyQ creates the `Images` and `PIN` tabs the first time each command's
+condition fires, not on launch.
+Copy a PNG image to populate `Images`, and run the "Move to PIN tab" command
+(`Ctrl+P` by default) on a clipboard item to populate `PIN`.
+
+CopyQ requires Accessibility access to observe global shortcuts and the
+system clipboard.
+Grant it in System Settings > Privacy & Security > Accessibility, and
+re-grant it after every CopyQ update because the app is unsigned.
+
+## 11. Validate AeroSpace
 
 ```sh
 open -a AeroSpace
@@ -323,7 +355,7 @@ bindings, and zero-width window gaps.
 Workspaces prefer the `G272QPF E2` external monitor and fall back to the
 built-in display when that monitor is absent.
 
-## 11. Restore the macOS menu shortcuts
+## 12. Restore the macOS menu shortcuts
 
 The source Mac has these global custom menu shortcuts:
 
@@ -354,7 +386,7 @@ If "shortcuts" means workflows in Apple's Shortcuts app, enable Shortcuts in
 iCloud settings on both Macs.
 Those workflows sync through iCloud and do not belong in this repository.
 
-## 12. Final checks
+## 13. Final checks
 
 ```sh
 chezmoi doctor
@@ -369,6 +401,7 @@ aerospace reload-config
 herdr config check
 herdr plugin list
 "/Applications/Ghostty.app/Contents/MacOS/ghostty" +validate-config
+pgrep -q CopyQ && echo "CopyQ running"
 ```
 
 `chezmoi diff` should print nothing after a clean restore.
@@ -391,6 +424,7 @@ chezmoi add "$HOME/.config/ghostty/config"
 chezmoi add "$HOME/.config/herdr/config.toml"
 chezmoi add "$HOME/.config/herdr/plugins/window-title/window_title.py"
 chezmoi add "$HOME/.config/nvim"
+chezmoi add "$HOME/.config/copyq/copyq-commands.ini"
 chezmoi diff
 ```
 
@@ -446,6 +480,8 @@ shared aliases, the prompt, or the plugins.
 Restart Ghostty after its configuration changes.
 Restart Neovim after its configuration changes and run `:Lazy sync` if the
 plugin specification or lock file changed.
+Quit and reopen CopyQ after changing `copyq-commands.ini` so it reloads the
+command list.
 
 ## Files that must stay local
 
@@ -467,6 +503,13 @@ Never add these paths to the repository:
 ~/.cache/nvim/
 ~/Library/Preferences/com.mitchellh.ghostty.plist
 ~/Library/LaunchAgents/homebrew.mxcl.herdr.plist
+~/.config/copyq/copyq_tabs.ini
+~/.config/copyq/copyq_tab_*.dat
+~/.config/copyq/copyq_geometry.ini
+~/.config/copyq/copyq-filter.ini
+~/.config/copyq/copyq-monitor.ini
+~/.config/copyq/copyq.lock
+~/.config/copyq/.copyq_s
 ```
 
 They contain runtime state, generated data, caches, or machine-specific paths.
